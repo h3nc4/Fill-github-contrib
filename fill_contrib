@@ -7,9 +7,28 @@ MAX_COMMITS_PER_DAY=5
 MIN_COMMITS_PER_DAY=0
 NO_COMMITS_CHANCE=20
 
+# Print help
+print_help() {
+	echo "Usage: $0 [-s start_date] [-e end_date] [-m commit_message] [-r repo_path] [-b branch_name] [-x max_commits_per_day] [-n min_commits_per_day] [-p no_commits_chance]" 1>&2
+	echo "" 1>&2
+	echo "Options:" 1>&2
+	echo "  -s START_DATE          Start date for commits (required, format: YYYY-MM-DD)" 1>&2
+	echo "  -e END_DATE            End date for commits (required, format: YYYY-MM-DD)" 1>&2
+	echo "  -m COMMIT_MESSAGE      Commit message (default: \"$COMMIT_MESSAGE\")" 1>&2
+	echo "  -r REPO_PATH           Path to the git repository (required)" 1>&2
+	echo "  -b BRANCH_NAME         Branch name to use (default: current branch)" 1>&2
+	echo "  -x MAX_COMMITS_PER_DAY Maximum number of commits per day (default: $MAX_COMMITS_PER_DAY)" 1>&2
+	echo "  -n MIN_COMMITS_PER_DAY Minimum number of commits per day (default: $MIN_COMMITS_PER_DAY)" 1>&2
+	echo "  -p NO_COMMITS_CHANCE   Chance of no commits on a day (0-100, default: $NO_COMMITS_CHANCE)" 1>&2
+}
+
 # Parse arguments
-while getopts "s:e:m:r:b:x:n:p:" opt; do
+while getopts "hs:e:m:r:b:x:n:p:" opt; do
 	case $opt in
+	h)
+		print_help
+		exit 0
+		;;
 	s) START_DATE="$OPTARG" ;;
 	e) END_DATE="$OPTARG" ;;
 	m) COMMIT_MESSAGE="$OPTARG" ;;
@@ -19,7 +38,7 @@ while getopts "s:e:m:r:b:x:n:p:" opt; do
 	n) MIN_COMMITS_PER_DAY="$OPTARG" ;;
 	p) NO_COMMITS_CHANCE="$OPTARG" ;;
 	*)
-		echo "Usage: $0 [-s start_date] [-e end_date] [-m commit_message] [-r repo_path] [-b branch_name] [-x max_commits_per_day] [-n min_commits_per_day] [-p no_commits_chance]" 1>&2
+		print_help
 		exit 1
 		;;
 	esac
@@ -27,7 +46,22 @@ done
 
 if [ -z "$START_DATE" ] || [ -z "$END_DATE" ] || [ -z "$REPO_PATH" ]; then
 	echo "Error: -s, -e, and -r are required." 1>&2
-	echo "Minimal usage: $0 -s 2020-01-01 -e 2025-01-01 -r /my/cool/repo" 1>&2
+	print_help
+	exit 1
+fi
+
+if [ "$MAX_COMMITS_PER_DAY" -lt "$MIN_COMMITS_PER_DAY" ] || [ "$NO_COMMITS_CHANCE" -lt 0 ] || [ "$NO_COMMITS_CHANCE" -gt 100 ]; then
+	echo "Error: Invalid values for parameters." 1>&2
+	exit 1
+fi
+
+if ! date -d "$START_DATE" >/dev/null 2>&1 || ! date -d "$END_DATE" >/dev/null 2>&1; then
+	echo "Error: Invalid date format. Use YYYY-MM-DD." 1>&2
+	exit 1
+fi
+
+if [ "$(date -d "$START_DATE" +%s)" -gt "$(date -d "$END_DATE" +%s)" ]; then
+	echo "Error: START_DATE must be earlier than END_DATE." 1>&2
 	exit 1
 fi
 
@@ -35,10 +69,10 @@ TOTAL_COMMITS=0
 CURRENT_DATE=$(date -d "$START_DATE - 1 day" +%Y-%m-%d) # Ensures script fails early if date cant be processed
 
 cd "$REPO_PATH"
-if [ -z "$BRANCH_NAME" ]; then
+if [ -z "$BRANCH_NAME" ]; then # Both of these will fail and exit if not on git repo
 	git branch --show-current >/dev/null # Fails and exits if git is in detached mode
 else
-	git checkout "$BRANCH_NAME"
+	git checkout "$BRANCH_NAME" # Also exits if the branch does not exist
 fi
 
 # Create commits
