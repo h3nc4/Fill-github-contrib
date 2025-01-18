@@ -1,45 +1,52 @@
 # Fill Github Contributions
 
-This shell script is used to fill Github contributions by creating multiple commits for each day between a given start date and end date. It uses a random number with max and min values of your choice to determine the amount of commits for each day. It also gives you the option to set a percentage where commits will be skipped for each day.
+This shell script allows you to populate your GitHub contributions graph with commits across a range of dates. You can customize the number of commits per day, set a probability for skipping certain days, and specify other parameters to tailor the behavior.
+
+## Features
+
+- Generate commits for each day within a specified date range.
+- Randomize the number of commits per day within a customizable range.
+- Skip commits on certain days based on a configurable probability.
+- Supports custom commit messages, branch selection, and more.
 
 ## Usage
 
-1. Clone the repository:
+To run the script with the required parameters:
 
-    ```bash
-    git clone https://github.com/h3nc4/Fill-github-contrib.git
-    ```
+```console
+$ ./fill_contrib -s 2020-01-01 -e 2025-01-01 -r /path/to/your/repo -b main
+```
 
-2. Modify the script variables in the config.sh file to your desired values:
+### Parameter list
 
-    ```bash
-    # The date of the first commit, in the format YYYY-MM-DD
-    START_DATE="2022-01-01"
-    # The date of the last commit
-    END_DATE="2023-01-01"
-    # The commit message
-    COMMIT_MESSAGE="Dont judge people by commits"
-    # Some git repository path
-    REPO_PATH="/path/to/MyProject"
-    # Max number of commits per day
-    MAX_COMMITS_PER_DAY=10
-    # Min number of commits per day
-    MIN_COMMITS_PER_DAY=0
-    # Chance that there will be no commits on a day, ***IN PERCENT***
-    NO_COMMITS_CHANCE=20
-    ```
+| Parameter | Description | Required | Default Value |
+| --------- | ----------- | -------- | ------------- |
+| `-s` | Start date (YYYY-MM-DD) | Yes | N/A |
+| `-e` | End date (YYYY-MM-DD) | Yes | N/A |
+| `-m` | Commit message | No | "Don't judge people by commits" |
+| `-r` | Path to the local Git repo | Yes | N/A |
+| `-b` | Branch name | No | Current branch |
+| `-x` | Maximum commits per day | No | 5 |
+| `-n` | Minimum commits per day | No | 0 |
+| `-p` | Percentage chance of skipping a day's commits | No | 20 |
 
-3. Run the script:
+### Example Usage
 
-    ```bash
-    cd Fill-github-contrib/src
-    chmod +x fillcontribs.sh
-    ./fillcontribs.sh
-    ```
+```console
+# Generate commits from Jan 1, 2023, to Dec 31, 2023, in the "main" branch:
+$ ./fill_contrib -s 2023-01-01 -e 2023-12-31 -r /path/to/repo -b main
 
-## License
+# Customize the number of commits and skip chance:
+$ ./fill_contrib -s 2023-01-01 -e 2023-12-31 -r /path/to/repo -x 10 -n 2 -p 30
+```
 
-This project is licensed under the BSD License - see [LICENSE](LICENSE) for details.
+### Push Commits
+
+After running the script, you'll be prompted to push the changes:
+
+```console
+Push X commits? (y/N)
+```
 
 ## On other platforms
 
@@ -47,8 +54,10 @@ If you *still* use Windows, consider using [WSL](https://learn.microsoft.com/en-
 
 ## Why This Script?
 
-In college, my professor congratulated me for having lots of commits on my GitHub profile, unlike some of my friends. It got me thinking about how we often judge developers by these squares.
+In college, my professor congratulated me for having lots of commits on my GitHub profile, unlike some of my friends. This repo shows how little value they are to a developer's value.
 
-**Fill Github Contributions** is a script I made to add commits to your profile without the pressure of big commits. Remember, coding is more than just squares on a graph!
+## License
+
+This project is licensed under the BSD License - see [LICENSE](LICENSE) for details.
 
 Don't judge people by commits.

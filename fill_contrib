@@ -1,0 +1,68 @@
+#!/bin/sh
+set -e
+
+# Default values
+COMMIT_MESSAGE="Don't judge people by commits"
+MAX_COMMITS_PER_DAY=5
+MIN_COMMITS_PER_DAY=0
+NO_COMMITS_CHANCE=20
+
+# Parse arguments
+while getopts "s:e:m:r:b:x:n:p:" opt; do
+	case $opt in
+	s) START_DATE="$OPTARG" ;;
+	e) END_DATE="$OPTARG" ;;
+	m) COMMIT_MESSAGE="$OPTARG" ;;
+	r) REPO_PATH="$OPTARG" ;;
+	b) BRANCH_NAME="$OPTARG" ;;
+	x) MAX_COMMITS_PER_DAY="$OPTARG" ;;
+	n) MIN_COMMITS_PER_DAY="$OPTARG" ;;
+	p) NO_COMMITS_CHANCE="$OPTARG" ;;
+	*)
+		echo "Usage: $0 [-s start_date] [-e end_date] [-m commit_message] [-r repo_path] [-b branch_name] [-x max_commits_per_day] [-n min_commits_per_day] [-p no_commits_chance]" 1>&2
+		exit 1
+		;;
+	esac
+done
+
+if [ -z "$START_DATE" ] || [ -z "$END_DATE" ] || [ -z "$REPO_PATH" ]; then
+	echo "Error: -s, -e, and -r are required." 1>&2
+	echo "Minimal usage: $0 -s 2020-01-01 -e 2025-01-01 -r /my/cool/repo" 1>&2
+	exit 1
+fi
+
+TOTAL_COMMITS=0
+CURRENT_DATE=$(date -d "$START_DATE - 1 day" +%Y-%m-%d) # Ensures script fails early if date cant be processed
+
+cd "$REPO_PATH"
+if [ -z "$BRANCH_NAME" ]; then
+	git branch --show-current >/dev/null # Fails and exits if git is in detached mode
+else
+	git checkout "$BRANCH_NAME"
+fi
+
+# Create commits
+while [ "$(date -d "$CURRENT_DATE" +%s)" -le "$(date -d "$END_DATE" +%s)" ]; do
+	CURRENT_DATE=$(date -d "$CURRENT_DATE + 1 day" +%Y-%m-%d)
+	if [ "$(shuf -i 0-99 -n 1)" -le "$NO_COMMITS_CHANCE" ]; then
+		echo "$CURRENT_DATE - Skipped"
+		continue
+	fi
+	NCOMMITS=$(shuf -i "$MIN_COMMITS_PER_DAY-$MAX_COMMITS_PER_DAY" -n 1)
+	TOTAL_COMMITS=$((TOTAL_COMMITS + NCOMMITS))
+	echo "$CURRENT_DATE - $NCOMMITS commits"
+	for _ in $(seq 1 "$NCOMMITS"); do
+		GIT_AUTHOR_DATE="$CURRENT_DATE 12:00:00" GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE" git commit --allow-empty --no-gpg-sign -m "$COMMIT_MESSAGE" >/dev/null
+	done
+done
+
+if [ "$TOTAL_COMMITS" -eq 0 ]; then
+	echo "No commits were made."
+	exit 0
+fi
+
+printf "Push %s commits? (y/N) " "$TOTAL_COMMITS"
+read -r answer
+if [ "$answer" = "y" ]; then
+	git push origin "$BRANCH_NAME"
+fi
