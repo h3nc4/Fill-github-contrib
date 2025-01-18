@@ -86,7 +86,9 @@ while [ "$(date -d "$CURRENT_DATE" +%s)" -le "$(date -d "$END_DATE" +%s)" ]; do
 	TOTAL_COMMITS=$((TOTAL_COMMITS + NCOMMITS))
 	echo "$CURRENT_DATE - $NCOMMITS commits"
 	for _ in $(seq 1 "$NCOMMITS"); do
-		GIT_AUTHOR_DATE="$CURRENT_DATE 12:00:00" GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE" git commit --allow-empty --no-gpg-sign -m "$COMMIT_MESSAGE" >/dev/null
+		GIT_DATE="$CURRENT_DATE $(date -d "@$(shuf -i 0-86399 -n 1)" +%H:%M:%S)"
+		GIT_AUTHOR_DATE="$GIT_DATE" GIT_COMMITTER_DATE="$GIT_DATE" \
+			git commit --allow-empty --no-gpg-sign -m "$COMMIT_MESSAGE" >/dev/null
 	done
 done
 
