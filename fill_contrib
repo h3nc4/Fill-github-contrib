@@ -100,5 +100,5 @@ fi
 printf "Push %s commits? (y/N) " "$TOTAL_COMMITS"
 read -r answer
 if [ "$answer" = "y" ]; then
-	git push origin "$BRANCH_NAME"
+	git push
 fi
