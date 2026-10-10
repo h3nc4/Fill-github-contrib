@@ -77,7 +77,7 @@ else
 fi
 
 # Create commits
-while [ "$(date -d "$CURRENT_DATE" +%s)" -le "$(date -d "$END_DATE" +%s)" ]; do
+while [ "$(date -d "$CURRENT_DATE" +%s)" -lt "$(date -d "$END_DATE" +%s)" ]; do
 	CURRENT_DATE=$(date -d "$CURRENT_DATE + 1 day" +%Y-%m-%d)
 	if [ "$(shuf -i 0-99 -n 1)" -lt "$NO_COMMITS_CHANCE" ]; then
 		echo "$CURRENT_DATE - Skipped"
