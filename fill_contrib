@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+export TZ=UTC # Local midnight is missing on DST start days, which breaks date -d
 
 # Default values
 COMMIT_MESSAGE="Don't judge people by commits"
